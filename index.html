@@ -726,14 +726,15 @@
   <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2 pointer-events-none"></div>
 
-  <!-- LOADING OVERLAY SPINNER -->
-  <div id="loadingOverlay" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center hidden">
-    <div class="bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-100">
+  <!-- LOADING OVERLAY SPINNER (Bisa diklik untuk menutup jika macet) -->
+  <div id="loadingOverlay" onclick="showLoading(false)" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center hidden cursor-pointer" title="Klik di mana saja untuk menutup loading">
+    <div class="bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-100 pointer-events-auto" onclick="event.stopPropagation()">
       <svg class="w-5 h-5 text-brand-600 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
         <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
       </svg>
       <span class="text-xs font-bold text-slate-800" id="loadingText">Menyinkronkan data...</span>
+      <button onclick="showLoading(false)" class="ml-2 text-slate-400 hover:text-slate-600 p-1 text-xs font-bold rounded-lg hover:bg-slate-100">Batal</button>
     </div>
   </div>
 
@@ -751,6 +752,42 @@
       chartPribadiInstance: null,
       chartBersamaInstance: null
     };
+
+    // Template Data Awal (Mencegah UI beku / unclickable)
+    function getEmptyStateData(profile, period) {
+      return {
+        profile: profile,
+        monthPeriod: period,
+        pribadi: {
+          totalIncome: 0,
+          totalExpense: 0,
+          balance: 0,
+          monthlyLimit: 3000000,
+          limitUsedPercent: 0,
+          isOverLimit: false,
+          categoryBreakdown: {},
+          habitHighlight: { category: (profile === 'Fadhil' ? 'Kopi' : 'Belanja Online'), amount: 0, percent: 0, isAlert: false },
+          transactions: []
+        },
+        bersama: {
+          totalIncome: 0,
+          totalExpense: 0,
+          balance: 0,
+          monthlyLimit: 6000000,
+          limitUsedPercent: 0,
+          isOverLimit: false,
+          healthScore: 100,
+          healthStatus: "Netral",
+          healthNote: "Belum ada transaksi pada periode ini.",
+          categoryBreakdown: {},
+          transactions: []
+        },
+        categories: {
+          pribadi: ["Kopi", "Belanja Online", "Transportasi", "Makan Pribadi", "Kebutuhan Diri", "Gaji/Pemasukan", "Lainnya"],
+          bersama: ["Cicilan/Kost", "Makan Bersama", "Tabungan Liburan", "Kebutuhan Rumah", "Setoran Bersama", "Lainnya"]
+        }
+      };
+    }
 
     // Universal API Bridge (Bekerja otomatis di Google Apps Script DAN GitHub Pages)
     async function callApi(action, data = {}) {
@@ -779,25 +816,39 @@
 
       // 2. Jika dijalankan di GitHub Pages (melalui HTTP POST fetch)
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
         const response = await fetch(GAS_API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action, ...data })
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action, ...data }),
+          signal: controller.signal
         });
-        const result = await response.json();
+        clearTimeout(timeoutId);
+
+        const textResponse = await response.text();
+        let result;
+        try {
+          result = JSON.parse(textResponse);
+        } catch (jsonErr) {
+          if (textResponse.includes("doPost") || textResponse.includes("Fungsi skrip tidak ditemukan")) {
+            throw new Error("Google Apps Script belum diperbarui dengan doPost. Silakan buka Apps Script lalu Deploy > Manage deployments > Edit > New version.");
+          }
+          throw new Error("Respon server bukan format JSON valid.");
+        }
         return result;
       } catch (err) {
-        console.warn('Gagal menghubungi GAS Web App via POST, mencoba metode GET...');
-        if (action === 'getInitialDashboardData') {
-          const getUrl = `${GAS_API_URL}?action=${encodeURIComponent(action)}&userProfile=${encodeURIComponent(data.userProfile)}&monthPeriod=${encodeURIComponent(data.monthPeriod)}`;
-          const getRes = await fetch(getUrl);
-          return await getRes.json();
-        }
-        throw new Error('Gagal terhubung ke Google Apps Script: ' + err.message);
+        console.warn('Gagal memproses request API:', err);
+        throw err;
       }
     }
 
     // Inisialisasi saat Halaman Dimuat
     document.addEventListener('DOMContentLoaded', () => {
+      // Set default data agar UI langsung interaktif sejak detik pertama
+      state.data = getEmptyStateData(state.profile, state.monthPeriod);
+
       // Set input bulan ke periode saat ini
       const monthInput = document.getElementById('monthSelector');
       if (monthInput) monthInput.value = state.monthPeriod;
@@ -809,7 +860,10 @@
       // Sinkronisasi tombol profil aktif di navbar
       applyProfileUI(state.profile);
 
-      // Muat Data Dashboard
+      // Render tampilan awal
+      renderDashboard();
+
+      // Muat Data Dashboard dari server
       loadDashboardData();
     });
 
@@ -1407,14 +1461,20 @@
       }, 3500);
     }
 
+    let loadingTimeout = null;
     function showLoading(show, text = 'Menyinkronkan data...') {
       const el = document.getElementById('loadingOverlay');
       const txt = document.getElementById('loadingText');
+      if (loadingTimeout) { clearTimeout(loadingTimeout); loadingTimeout = null; }
       if (show) {
-        txt.textContent = text;
-        el.classList.remove('hidden');
+        if (txt) txt.textContent = text;
+        if (el) el.classList.remove('hidden');
+        // Auto-dismiss dalam 4.5 detik agar antarmuka tidak pernah terkunci
+        loadingTimeout = setTimeout(() => {
+          if (el) el.classList.add('hidden');
+        }, 4500);
       } else {
-        el.classList.add('hidden');
+        if (el) el.classList.add('hidden');
       }
     }
 
