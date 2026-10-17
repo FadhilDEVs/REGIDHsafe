@@ -814,10 +814,10 @@
         });
       }
 
-      // 2. Jika dijalankan di GitHub Pages (melalui HTTP POST fetch)
+      // 2. Jika dijalankan di GitHub Pages (melalui HTTP POST fetch dengan fallback GET)
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch(GAS_API_URL, {
           method: 'POST',
@@ -828,19 +828,32 @@
         clearTimeout(timeoutId);
 
         const textResponse = await response.text();
-        let result;
         try {
-          result = JSON.parse(textResponse);
+          return JSON.parse(textResponse);
         } catch (jsonErr) {
           if (textResponse.includes("doPost") || textResponse.includes("Fungsi skrip tidak ditemukan")) {
-            throw new Error("Google Apps Script belum diperbarui dengan doPost. Silakan buka Apps Script lalu Deploy > Manage deployments > Edit > New version.");
+            throw new Error("Apps Script belum diperbarui dengan doPost");
           }
-          throw new Error("Respon server bukan format JSON valid.");
+          throw jsonErr;
         }
-        return result;
-      } catch (err) {
-        console.warn('Gagal memproses request API:', err);
-        throw err;
+      } catch (postErr) {
+        console.warn('POST gagal, mencoba via GET query parameter fallback...', postErr);
+        try {
+          let getUrl = `${GAS_API_URL}?action=${encodeURIComponent(action)}`;
+          if (action === 'getInitialDashboardData' || action === 'getMonthlyReportData') {
+            getUrl += `&userProfile=${encodeURIComponent(data.userProfile || state.profile)}&monthPeriod=${encodeURIComponent(data.monthPeriod || state.monthPeriod)}`;
+          } else if (action === 'createTransaction' || action === 'updateMonthlyLimit') {
+            getUrl += `&payload=${encodeURIComponent(JSON.stringify(data.payload))}`;
+          } else if (action === 'deleteTransaction') {
+            getUrl += `&transactionId=${encodeURIComponent(data.transactionId)}&userProfile=${encodeURIComponent(data.userProfile)}`;
+          }
+
+          const getRes = await fetch(getUrl);
+          const getText = await getRes.text();
+          return JSON.parse(getText);
+        } catch (getErr) {
+          throw new Error("Google Apps Script belum diperbarui ke 'New Version'. Silakan buka Google Apps Script lalu klik Deploy > Manage deployments > Edit (pensil) > New version > Deploy.");
+        }
       }
     }
 
