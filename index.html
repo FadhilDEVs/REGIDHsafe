@@ -1247,7 +1247,7 @@
       });
     }
 
-    function handleTransactionSubmit(e) {
+    async function handleTransactionSubmit(e) {
       e.preventDefault();
       const rawAmount = document.getElementById('inputAmountRaw').value;
       const amount = parseFloat(rawAmount);
@@ -1326,7 +1326,7 @@
       document.getElementById('modalLimit').classList.add('hidden');
     }
 
-    function handleLimitSubmit(e) {
+    async function handleLimitSubmit(e) {
       e.preventDefault();
       const rawLimit = document.getElementById('inputLimitRaw').value;
       const newLimit = parseFloat(rawLimit);
