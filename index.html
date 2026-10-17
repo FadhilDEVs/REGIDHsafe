@@ -2,8 +2,18 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>REGIDHsafe - Financial Management</title>
+
+  <!-- PWA Meta Tags & Inline Embedded Manifest / Icons -->
+  <link id="manifestLink" rel="manifest">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="REGIDHsafe">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23g)'/%3E%3Cpath d='M256 110 L370 155 V265 C370 340 256 395 256 395 C256 395 142 340 142 265 V155 Z' fill='none' stroke='%23ffffff' stroke-width='24' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='300' r='18' fill='%23ffffff'/%3E%3Cpath d='M256 200 V255' stroke='%23ffffff' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23g)'/%3E%3Cpath d='M256 110 L370 155 V265 C370 340 256 395 256 395 C256 395 142 340 142 265 V155 Z' fill='none' stroke='%23ffffff' stroke-width='24' stroke-linejoin='round'/%3E%3Ccircle cx='256' cy='300' r='18' fill='%23ffffff'/%3E%3Cpath d='M256 200 V255' stroke='%23ffffff' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E">
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,9 +52,34 @@
   </script>
 
   <style>
-    body {
+    /* Strict Mobile Fit & Vertical Only Scrolling */
+    html, body {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden !important;
+      overscroll-behavior-x: none !important;
+      overscroll-behavior-y: contain;
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      touch-action: pan-y; /* Hanya izinkan vertical gesture */
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      max-width: 100vw;
+    }
+    body {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+    }
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 3rem;
+      }
+    }
+    header {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    #floatingActionBtn {
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
     }
     .glass-card {
       background: rgba(255, 255, 255, 0.78);
@@ -141,6 +176,17 @@
         <div class="relative">
           <input type="month" id="monthSelector" onchange="onMonthChange(this.value)" class="text-xs font-semibold bg-white/90 border border-slate-200/80 rounded-xl px-2.5 py-1.5 text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
         </div>
+
+        <!-- PWA Install Button (Otomatis tampil jika didukung browser HP) -->
+        <button id="btnPwaInstall" onclick="triggerPwaInstall()" class="hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-accent-600 rounded-xl shadow-md shadow-brand-500/20 transition">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span class="hidden sm:inline">Pasang App</span>
+          <span class="sm:hidden">Instal</span>
+        </button>
 
         <!-- Desktop Action: Rekap Bulanan Button -->
         <button onclick="openReportModal()" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm transition">
@@ -740,6 +786,62 @@
 
   <!-- CLIENT-SIDE APPLICATION JAVASCRIPT -->
   <script>
+    // Inisialisasi PWA Manifest Otomatis (Self-Contained tanpa berkas manifest.json terpisah)
+    (function setupInlinePwa() {
+      const pwaIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4f46e5"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs><rect width="512" height="512" rx="128" fill="url(#g)"/><path d="M256 110 L370 155 V265 C370 340 256 395 256 395 C256 395 142 340 142 265 V155 Z" fill="none" stroke="#fff" stroke-width="24" stroke-linejoin="round"/><circle cx="256" cy="300" r="18" fill="#fff"/><path d="M256 200 V255" stroke="#fff" stroke-width="24" stroke-linecap="round"/></svg>`;
+      const iconDataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pwaIconSvg);
+
+      const manifestData = {
+        name: "REGIDHsafe - Financial Management",
+        short_name: "REGIDHsafe",
+        description: "Platform pencatatan dan evaluasi keuangan pasangan modern.",
+        start_url: window.location.href.split('#')[0],
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#f8fafc",
+        theme_color: "#4f46e5",
+        icons: [
+          {
+            src: iconDataUri,
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          }
+        ]
+      };
+
+      try {
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestEl = document.getElementById('manifestLink');
+        if (manifestEl) manifestEl.href = manifestUrl;
+      } catch (e) {
+        console.warn('PWA Manifest setup skipped:', e);
+      }
+    })();
+
+    // Handler Tombol Instal PWA
+    let deferredPwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const btn = document.getElementById('btnPwaInstall');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    function triggerPwaInstall() {
+      if (!deferredPwaPrompt) return;
+      deferredPwaPrompt.prompt();
+      deferredPwaPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          showToast('Aplikasi berhasil dipasang di perangkat Anda.', 'success');
+        }
+        deferredPwaPrompt = null;
+        const btn = document.getElementById('btnPwaInstall');
+        if (btn) btn.classList.add('hidden');
+      });
+    }
+
     // Konfigurasi Google Apps Script Endpoint (untuk deployment di GitHub Pages)
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzh7v9B-NuB9r3_HUWYQCEm7JqEqZJm6LdUOmdbFQ9-d5b-jStFqbBukdsk-CADtRH4/exec";
 
