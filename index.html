@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>REGIDHsafe - Financial Management</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            accent: {
+              500: '#8b5cf6',
+              600: '#7c3aed',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+    }
+    .glass-card-interactive {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card-interactive:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px -6px rgba(99, 102, 241, 0.1), 0 6px 16px -3px rgba(0, 0, 0, 0.05);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    
+    /* Print Stylesheet for Professional PDF / Statement */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print, header, nav, #floatingActionBtn, #toastContainer, .modal-backdrop {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .glass-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+      }
+    }
+    .print-only {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/40 min-h-screen text-slate-800 antialiased pb-24 md:pb-12">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-white/60 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo Brand with SVG Shield-Vault -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 8v4"/>
+            <circle cx="12" cy="15" r="1"/>
+          </svg>
+        </div>
+        <div>
+          <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent">REGIDHsafe</span>
+          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-brand-600 rounded-full border border-brand-100">Couple Finance</span>
+        </div>
+      </div>
+
+      <!-- Center / Right Controls: Profile Switcher & Month Picker -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        
+        <!-- Profile Switcher Pill -->
+        <div class="bg-slate-100/90 p-1 rounded-xl flex items-center border border-slate-200/60 shadow-inner">
+          <button id="btnProfileFadhil" onclick="switchProfile('Fadhil')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>Fadhil</span>
+          </button>
+          <button id="btnProfileRegyna" onclick="switchProfile('Regyna')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>Regyna</span>
+          </button>
+        </div>
+
+        <!-- Month Filter Selector -->
+        <div class="relative">
+          <input type="month" id="monthSelector" onchange="onMonthChange(this.value)" class="text-xs font-semibold bg-white/90 border border-slate-200/80 rounded-xl px-2.5 py-1.5 text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
+        </div>
+
+        <!-- Desktop Action: Rekap Bulanan Button -->
+        <button onclick="openReportModal()" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm transition">
+          <svg class="w-4 h-4 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Rekap & Unduh</span>
+        </button>
+
+        <!-- Desktop Action: Tambah Transaksi -->
+        <button onclick="openTransactionModal()" class="hidden md:flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-700 hover:to-accent-700 rounded-xl shadow-md shadow-brand-500/20 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Catat Transaksi</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- PRINT REPORT HEADER (Only visible in Print / PDF Export) -->
+  <div class="print-only max-w-4xl mx-auto p-6 border-b border-slate-300 mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">REGIDHsafe - Rekapitulasi Keuangan Pasangan</h1>
+        <p class="text-sm text-slate-600" id="printReportSubtitle">Periode: Oktober 2026</p>
+      </div>
+      <div class="text-right text-xs text-slate-500">
+        <p>Laporan Resmi Rekapitulasi</p>
+        <p id="printGeneratedDate">Dicetak pada: 2026-10-17</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- HERO PROFILE GREETING & NOTICE -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-white/60">
+      <div class="flex items-center gap-3">
+        <div id="avatarProfile" class="w-11 h-11 rounded-full bg-brand-100 border-2 border-brand-500/30 flex items-center justify-center text-brand-600 font-bold text-base">
+          F
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-bold text-slate-900" id="txtProfileGreeting">Sesi Profil: Fadhil</h2>
+            <span class="px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-md border border-emerald-200" id="badgePrivateStatus">Kantong Terisolasi</span>
+          </div>
+          <p class="text-xs text-slate-500" id="txtProfileSub">Hanya Anda yang dapat melihat & mengelola kantong pribadi ini. Kantong bersama tersinkronisasi.</p>
+        </div>
+      </div>
+      
+      <!-- Quick Limit Settings Trigger -->
+      <button onclick="openLimitModal()" class="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-brand-600 bg-white/90 hover:bg-white border border-slate-200/80 rounded-xl transition shadow-sm">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>Atur Batas Limit Bulanan</span>
+      </button>
+    </div>
+
+    <!-- SECTION 1: DUAL CARDS (KANTONG PRIBADI vs KANTONG BERSAMA) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- CARD 1: KANTONG PRIBADI (AKTIF) -->
+      <div class="glass-card glass-card-interactive p-6 rounded-2xl relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-brand-600 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Otonom & Privat</span>
+              <h3 class="text-base font-bold text-slate-900" id="cardPribadiTitle">Kantong Pribadi Fadhil</h3>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-indigo-50 text-brand-700 border border-brand-200/60" id="badgePribadiOwner">Hanya Fadhil</span>
+        </div>
+
+        <!-- Balance Info -->
+        <div class="mt-2 mb-4">
+          <div class="text-xs text-slate-500 font-medium">Sisa Saldo Berjalan</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="txtPribadiBalance">Rp 0</div>
+        </div>
+
+        <!-- In / Out Metrics -->
+        <div class="grid grid-cols-2 gap-3 py-3 px-3.5 bg-slate-50/80 rounded-xl border border-slate-100 mb-4">
+          <div>
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mb-0.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+              <span>Pemasukan</span>
+            </div>
+            <div class="text-sm font-bold text-slate-800" id="txtPribadiIncome">Rp 0</div>
+          </div>
+          <div>
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-rose-600 mb-0.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              <span>Pengeluaran</span>
+            </div>
+            <div class="text-sm font-bold text-slate-800" id="txtPribadiExpense">Rp 0</div>
+          </div>
+        </div>
+
+        <!-- Monthly Budget Limit Progress -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span class="text-slate-600">Pemakaian Pagu Bulanan:</span>
+            <span id="txtPribadiLimitSummary" class="text-slate-900">Rp 0 / Rp 0</span>
+          </div>
+          <div class="w-full bg-slate-200/80 rounded-full h-2.5 overflow-hidden">
+            <div id="barPribadiLimit" class="bg-brand-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500">
+            <span id="txtPribadiPercent">0% terpakai</span>
+            <span id="txtPribadiLimitStatus" class="font-semibold text-emerald-600">Batas Aman</span>
+          </div>
+        </div>
+
+        <!-- Specific Habit Warning (Kopi Fadhil / Online Shop Regyna) -->
+        <div id="boxHabitAlert" class="mt-4 p-3 rounded-xl border flex items-center gap-3 hidden">
+          <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div class="text-xs">
+            <span class="font-bold text-slate-900" id="txtHabitTitle">Evaluasi Kebiasaan:</span>
+            <p class="text-slate-600" id="txtHabitDesc">Pengeluaran kategori ini mendominasi lebih dari 25% total belanja Anda.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: KANTONG BERSAMA (HEALTH METER & SHARED STATUS) -->
+      <div class="glass-card glass-card-interactive p-6 rounded-2xl relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-accent-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 text-accent-600 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Transparan & Real-Time</span>
+              <h3 class="text-base font-bold text-slate-900">Kantong Bersama (Shared Pocket)</h3>
+            </div>
+          </div>
+          
+          <!-- Health Badge -->
+          <div id="badgeHealthContainer" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <svg class="w-3.5 h-3.5 text-emerald-600 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <span class="text-xs font-bold" id="txtHealthStatus">Sangat Sehat</span>
+          </div>
+        </div>
+
+        <!-- Balance Info -->
+        <div class="mt-2 mb-4">
+          <div class="text-xs text-slate-500 font-medium">Total Dana Bersama Terkumpul</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="txtBersamaBalance">Rp 0</div>
+        </div>
+
+        <!-- In / Out Metrics -->
+        <div class="grid grid-cols-2 gap-3 py-3 px-3.5 bg-slate-50/80 rounded-xl border border-slate-100 mb-4">
+          <div>
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mb-0.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+              <span>Himpunan Kas</span>
+            </div>
+            <div class="text-sm font-bold text-slate-800" id="txtBersamaIncome">Rp 0</div>
+          </div>
+          <div>
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-rose-600 mb-0.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              <span>Pengeluaran Bersama</span>
+            </div>
+            <div class="text-sm font-bold text-slate-800" id="txtBersamaExpense">Rp 0</div>
+          </div>
+        </div>
+
+        <!-- Health Meter & Note -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span class="text-slate-600">Skor Kesehatan Finansial Bersama:</span>
+            <span id="txtHealthScore" class="text-emerald-700 font-bold">100 / 100</span>
+          </div>
+          <div class="w-full bg-slate-200/80 rounded-full h-2.5 overflow-hidden">
+            <div id="barHealthMeter" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+          </div>
+          <p class="text-[11px] text-slate-500 pt-1" id="txtHealthNote">Cadangan kas bersama surplus dan dalam status aman terkendali.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION 2: CHARTS & ANALYTICS (PRIBADI vs BERSAMA) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- CHART 1: GRAFIK PRIBADI (EVALUASI INDIVIDU) -->
+      <div class="glass-card p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-900" id="chartPribadiTitle">Pola Belanja Pribadi (Fadhil)</h4>
+              <p class="text-[11px] text-slate-500">Evaluasi kebiasaan pengeluaran per kategori individu</p>
+            </div>
+          </div>
+        </div>
+        <div class="h-64 relative flex items-center justify-center">
+          <canvas id="chartPribadiCanvas"></canvas>
+          <div id="emptyChartPribadi" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 hidden">
+            <svg class="w-10 h-10 mb-2 stroke-current opacity-40" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span class="text-xs">Belum ada pengeluaran pribadi bulan ini</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART 2: GRAFIK BERSAMA (PIE CHART ALOKASI DANA) -->
+      <div class="glass-card p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-purple-50 text-accent-600 flex items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-900">Alokasi Dana Bersama</h4>
+              <p class="text-[11px] text-slate-500">Distribusi pengeluaran kas bersama (Cicilan, Makan, Tabungan)</p>
+            </div>
+          </div>
+        </div>
+        <div class="h-64 relative flex items-center justify-center">
+          <canvas id="chartBersamaCanvas"></canvas>
+          <div id="emptyChartBersama" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 hidden">
+            <svg class="w-10 h-10 mb-2 stroke-current opacity-40" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span class="text-xs">Belum ada pengeluaran kas bersama bulan ini</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION 3: TABEL & DAFTAR TRANSAKSI -->
+    <div class="glass-card p-6 rounded-2xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Riwayat Mutasi Keuangan</h3>
+          <p class="text-xs text-slate-500">Daftar transaksi real-time sesuai hak akses profil</p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60 self-start sm:self-auto">
+          <button id="tabFilterAll" onclick="setTransactionFilter('ALL')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition">Semua</button>
+          <button id="tabFilterPribadi" onclick="setTransactionFilter('PRIBADI')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">Kantong Pribadi</button>
+          <button id="tabFilterBersama" onclick="setTransactionFilter('BERSAMA')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">Kantong Bersama</button>
+        </div>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="flex flex-col sm:flex-row items-center gap-3">
+        <div class="relative w-full sm:w-64">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="inputSearchTrx" oninput="renderTransactionList()" placeholder="Cari keterangan / kategori..." class="w-full pl-9 pr-3 py-2 text-xs bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+      </div>
+
+      <!-- Transactions List Container -->
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200/70 text-slate-500 uppercase tracking-wider font-semibold text-[10px]">
+              <th class="py-3 px-3">Tanggal</th>
+              <th class="py-3 px-3">Kantong</th>
+              <th class="py-3 px-3">Kategori</th>
+              <th class="py-3 px-3">Keterangan</th>
+              <th class="py-3 px-3 text-right">Nominal</th>
+              <th class="py-3 px-3 text-center no-print">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyTransactions" class="divide-y divide-slate-100 font-medium">
+            <!-- Dynamic rows will be rendered here -->
+          </tbody>
+        </table>
+        
+        <div id="emptyTransactionsState" class="py-12 flex flex-col items-center justify-center text-slate-400 hidden">
+          <svg class="w-10 h-10 mb-2 stroke-current opacity-30" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M7 15h0"/>
+            <path d="M2 9.5h20"/>
+          </svg>
+          <span class="text-xs">Tidak ada data transaksi yang sesuai filter</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MOBILE FLOATING ACTION BUTTONS (BOTTOM BAR) -->
+  <div id="floatingActionBtn" class="md:hidden fixed bottom-4 inset-x-4 z-40 flex items-center justify-between gap-3 bg-white/90 backdrop-blur-lg p-2 rounded-2xl border border-white/80 shadow-xl">
+    <button onclick="openReportModal()" class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+      <svg class="w-4 h-4 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Rekap & Unduh</span>
+    </button>
+    <button onclick="openTransactionModal()" class="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-accent-600 rounded-xl shadow-md shadow-brand-500/25 transition">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      <span>Catat Transaksi</span>
+    </button>
+  </div>
+
+  <!-- MODAL 1: TAMBAH TRANSAKSI -->
+  <div id="modalTransaction" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 border border-white space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">Catat Transaksi Baru</h3>
+        </div>
+        <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="formTransaction" onsubmit="handleTransactionSubmit(event)" class="space-y-3.5">
+        
+        <!-- Pilihan Kantong: Pribadi vs Bersama -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tujuan Kantong</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="relative flex items-center justify-center p-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700 text-xs font-semibold text-slate-700">
+              <input type="radio" name="inputPocket" value="PRIBADI" checked onchange="updateCategoryOptions()" class="sr-only">
+              <span id="labelFormPocketPribadi">Kantong Pribadi (Fadhil)</span>
+            </label>
+            <label class="relative flex items-center justify-center p-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 has-[:checked]:border-accent-600 has-[:checked]:bg-purple-50 has-[:checked]:text-accent-700 text-xs font-semibold text-slate-700">
+              <input type="radio" name="inputPocket" value="BERSAMA" onchange="updateCategoryOptions()" class="sr-only">
+              <span>Kantong Bersama</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tipe Transaksi: Pengeluaran vs Pemasukan -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Mutasi</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="relative flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50 has-[:checked]:text-rose-700 text-xs font-semibold text-slate-700">
+              <input type="radio" name="inputType" value="EXPENSE" checked onchange="updateCategoryOptions()" class="sr-only">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              <span>Pengeluaran</span>
+            </label>
+            <label class="relative flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-700 text-xs font-semibold text-slate-700">
+              <input type="radio" name="inputType" value="INCOME" onchange="updateCategoryOptions()" class="sr-only">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+              <span>Pemasukan</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Nominal (Rupiah Formatted) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nominal (Rp)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+            <input type="text" id="inputAmountDisplay" oninput="formatRupiahInput(this)" placeholder="0" required class="w-full pl-9 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <input type="hidden" id="inputAmountRaw" required>
+          </div>
+        </div>
+
+        <!-- Kategori Transaksi -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori</label>
+          <select id="selectCategory" required class="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
+            <!-- Dynamic categories populated here -->
+          </select>
+        </div>
+
+        <!-- Tanggal -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tanggal</label>
+          <input type="date" id="inputTrxDate" required class="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+
+        <!-- Deskripsi / Keterangan -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Keterangan / Catatan</label>
+          <input type="text" id="inputDescription" placeholder="Contoh: Kopi americano, Belanja mingguan" required class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeTransactionModal()" class="w-1/3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+          <button type="submit" id="btnSubmitTrx" class="w-2/3 py-2 text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-700 hover:to-accent-700 rounded-xl shadow-md shadow-brand-500/20 transition">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ATUR LIMIT BULANAN -->
+  <div id="modalLimit" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 border border-white space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">Batas Anggaran Bulanan</h3>
+        </div>
+        <button onclick="closeLimitModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="formLimit" onsubmit="handleLimitSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Target Anggaran</label>
+          <select id="selectTargetPocketLimit" class="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="PRIBADI">Kantong Pribadi Aktif</option>
+            <option value="BERSAMA">Kantong Bersama</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Pagu Limit Maksimal (Rp)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+            <input type="text" id="inputLimitDisplay" oninput="formatRupiahInput(this)" placeholder="3.000.000" required class="w-full pl-9 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <input type="hidden" id="inputLimitRaw" required>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">Sistem akan memberi peringatan jika pengeluaran melewati batas ini.</p>
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeLimitModal()" class="w-1/3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
+          <button type="submit" id="btnSubmitLimit" class="w-2/3 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md shadow-brand-500/20 transition">Simpan Limit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: REKAP BULANAN & UNDUH (CSV & CETAK PDF) -->
+  <div id="modalReport" class="modal-backdrop fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-white space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Rekap & Laporan Bulanan</h3>
+            <p class="text-[11px] text-slate-500" id="txtReportModalSubtitle">Periode: YYYY-MM</p>
+          </div>
+        </div>
+        <button onclick="closeReportModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Summary Preview Box -->
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-slate-600">Total Pengeluaran Pribadi:</span>
+          <span class="font-bold text-slate-900" id="txtReportPribadiExpense">Rp 0</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-slate-600">Total Pengeluaran Bersama:</span>
+          <span class="font-bold text-slate-900" id="txtReportBersamaExpense">Rp 0</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-slate-600">Status Kesehatan Bersama:</span>
+          <span class="font-bold text-emerald-600" id="txtReportHealthStatus">Sangat Sehat</span>
+        </div>
+        <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-200">
+          <span class="font-semibold text-slate-700">Total Jumlah Transaksi:</span>
+          <span class="font-bold text-brand-600" id="txtReportTrxCount">0 Transaksi</span>
+        </div>
+      </div>
+
+      <!-- Download Actions Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        <button onclick="exportCSVReport()" class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold shadow-sm transition">
+          <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Unduh Berkas CSV</span>
+        </button>
+
+        <button onclick="printPDFReport()" class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-700 hover:to-accent-700 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+          <span>Cetak / Simpan PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- LOADING OVERLAY SPINNER -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-xs flex items-center justify-center hidden">
+    <div class="bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-100">
+      <svg class="w-5 h-5 text-brand-600 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+      </svg>
+      <span class="text-xs font-bold text-slate-800" id="loadingText">Menyinkronkan data...</span>
+    </div>
+  </div>
+
+  <!-- CLIENT-SIDE APPLICATION JAVASCRIPT -->
+  <script>
+    // Konfigurasi Google Apps Script Endpoint (untuk deployment di GitHub Pages)
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzh7v9B-NuB9r3_HUWYQCEm7JqEqZJm6LdUOmdbFQ9-d5b-jStFqbBukdsk-CADtRH4/exec";
+
+    // State Aplikasi
+    const state = {
+      profile: localStorage.getItem('regidh_active_profile') || 'Fadhil',
+      monthPeriod: new Date().toISOString().substring(0, 7),
+      activeTab: 'ALL',
+      data: null,
+      chartPribadiInstance: null,
+      chartBersamaInstance: null
+    };
+
+    // Universal API Bridge (Bekerja otomatis di Google Apps Script DAN GitHub Pages)
+    async function callApi(action, data = {}) {
+      // 1. Jika dijalankan di dalam lingkungan Google Apps Script
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          const runner = google.script.run
+            .withSuccessHandler(res => resolve(res))
+            .withFailureHandler(err => reject(err));
+
+          if (action === 'getInitialDashboardData') {
+            runner.getInitialDashboardData(data.userProfile, data.monthPeriod);
+          } else if (action === 'createTransaction') {
+            runner.createTransaction(data.payload);
+          } else if (action === 'deleteTransaction') {
+            runner.deleteTransaction(data.transactionId, data.userProfile);
+          } else if (action === 'updateMonthlyLimit') {
+            runner.updateMonthlyLimit(data.payload);
+          } else if (action === 'getMonthlyReportData') {
+            runner.getMonthlyReportData(data.userProfile, data.monthPeriod);
+          } else {
+            reject(new Error('Aksi tidak dikenal: ' + action));
+          }
+        });
+      }
+
+      // 2. Jika dijalankan di GitHub Pages (melalui HTTP POST fetch)
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action, ...data })
+        });
+        const result = await response.json();
+        return result;
+      } catch (err) {
+        console.warn('Gagal menghubungi GAS Web App via POST, mencoba metode GET...');
+        if (action === 'getInitialDashboardData') {
+          const getUrl = `${GAS_API_URL}?action=${encodeURIComponent(action)}&userProfile=${encodeURIComponent(data.userProfile)}&monthPeriod=${encodeURIComponent(data.monthPeriod)}`;
+          const getRes = await fetch(getUrl);
+          return await getRes.json();
+        }
+        throw new Error('Gagal terhubung ke Google Apps Script: ' + err.message);
+      }
+    }
+
+    // Inisialisasi saat Halaman Dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set input bulan ke periode saat ini
+      const monthInput = document.getElementById('monthSelector');
+      if (monthInput) monthInput.value = state.monthPeriod;
+
+      // Set input tanggal form modal ke hari ini
+      const dateInput = document.getElementById('inputTrxDate');
+      if (dateInput) dateInput.value = new Date().toISOString().substring(0, 10);
+
+      // Sinkronisasi tombol profil aktif di navbar
+      applyProfileUI(state.profile);
+
+      // Muat Data Dashboard
+      loadDashboardData();
+    });
+
+    // Menangani Pergantian Profil (Fadhil vs Regyna)
+    function switchProfile(profileName) {
+      if (state.profile === profileName) return;
+      state.profile = profileName;
+      localStorage.setItem('regidh_active_profile', profileName);
+      applyProfileUI(profileName);
+      loadDashboardData();
+      showToast('Profil aktif beralih ke ' + profileName + '.', 'info');
+    }
+
+    function applyProfileUI(profile) {
+      const btnF = document.getElementById('btnProfileFadhil');
+      const btnR = document.getElementById('btnProfileRegyna');
+      const avatar = document.getElementById('avatarProfile');
+      const greeting = document.getElementById('txtProfileGreeting');
+      const sub = document.getElementById('txtProfileSub');
+      const cardTitle = document.getElementById('cardPribadiTitle');
+      const badgeOwner = document.getElementById('badgePribadiOwner');
+      const formPocketLabel = document.getElementById('labelFormPocketPribadi');
+      const chartTitle = document.getElementById('chartPribadiTitle');
+
+      if (profile === 'Fadhil') {
+        btnF.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-brand-700 shadow-sm transition';
+        btnR.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition';
+        avatar.textContent = 'F';
+        greeting.textContent = 'Sesi Profil: Fadhil';
+        sub.textContent = 'Hanya Anda yang dapat melihat & mengelola kantong pribadi ini. Kantong bersama tersinkronisasi.';
+        cardTitle.textContent = 'Kantong Pribadi Fadhil';
+        badgeOwner.textContent = 'Hanya Fadhil';
+        formPocketLabel.textContent = 'Kantong Pribadi (Fadhil)';
+        chartTitle.textContent = 'Pola Belanja Pribadi (Fadhil)';
+      } else {
+        btnR.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-accent-700 shadow-sm transition';
+        btnF.className = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition';
+        avatar.textContent = 'R';
+        greeting.textContent = 'Sesi Profil: Regyna';
+        sub.textContent = 'Hanya Anda yang dapat melihat & mengelola kantong pribadi ini. Kantong bersama tersinkronisasi.';
+        cardTitle.textContent = 'Kantong Pribadi Regyna';
+        badgeOwner.textContent = 'Hanya Regyna';
+        formPocketLabel.textContent = 'Kantong Pribadi (Regyna)';
+        chartTitle.textContent = 'Pola Belanja Pribadi (Regyna)';
+      }
+    }
+
+    // Pergantian Periode Bulan
+    function onMonthChange(newMonth) {
+      if (!newMonth) return;
+      state.monthPeriod = newMonth;
+      loadDashboardData();
+    }
+
+    // Panggil Backend Apps Script (Universal: GAS Web App & GitHub Pages)
+    async function loadDashboardData() {
+      showLoading(true, 'Memuat data keuangan ' + state.monthPeriod + '...');
+      try {
+        const res = await callApi('getInitialDashboardData', {
+          userProfile: state.profile,
+          monthPeriod: state.monthPeriod
+        });
+        onDataLoaded(res);
+      } catch (err) {
+        onDataError(err);
+      }
+    }
+
+    function onDataLoaded(res) {
+      showLoading(false);
+      if (!res.success) {
+        showToast(res.error || 'Gagal memuat data.', 'error');
+        return;
+      }
+      state.data = res.data;
+      renderDashboard();
+    }
+
+    function onDataError(err) {
+      showLoading(false);
+      showToast(err.message || 'Terjadi kesalahan jaringan.', 'error');
+    }
+
+    // Render Keseluruhan Komponen Dashboard
+    function renderDashboard() {
+      if (!state.data) return;
+      const { pribadi, bersama } = state.data;
+
+      // 1. Render Kantong Pribadi Card
+      document.getElementById('txtPribadiBalance').textContent = formatRupiah(pribadi.balance);
+      document.getElementById('txtPribadiIncome').textContent = formatRupiah(pribadi.totalIncome);
+      document.getElementById('txtPribadiExpense').textContent = formatRupiah(pribadi.totalExpense);
+      document.getElementById('txtPribadiLimitSummary').textContent = formatRupiah(pribadi.totalExpense) + ' / ' + formatRupiah(pribadi.monthlyLimit);
+      document.getElementById('txtPribadiPercent').textContent = pribadi.limitUsedPercent + '% terpakai';
+      
+      const barPribadi = document.getElementById('barPribadiLimit');
+      const statusPribadi = document.getElementById('txtPribadiLimitStatus');
+      barPribadi.style.width = Math.min(100, pribadi.limitUsedPercent) + '%';
+
+      if (pribadi.isOverLimit) {
+        barPribadi.className = 'bg-rose-500 h-2.5 rounded-full transition-all duration-500';
+        statusPribadi.className = 'font-bold text-rose-600';
+        statusPribadi.textContent = 'Melebihi Limit!';
+      } else if (pribadi.limitUsedPercent >= 80) {
+        barPribadi.className = 'bg-amber-500 h-2.5 rounded-full transition-all duration-500';
+        statusPribadi.className = 'font-bold text-amber-600';
+        statusPribadi.textContent = 'Mendekati Limit';
+      } else {
+        barPribadi.className = 'bg-brand-600 h-2.5 rounded-full transition-all duration-500';
+        statusPribadi.className = 'font-semibold text-emerald-600';
+        statusPribadi.textContent = 'Batas Aman';
+      }
+
+      // Habit Alert Box (Kopi Fadhil / Belanja Online Regyna)
+      const boxHabit = document.getElementById('boxHabitAlert');
+      const txtHabitTitle = document.getElementById('txtHabitTitle');
+      const txtHabitDesc = document.getElementById('txtHabitDesc');
+      if (pribadi.habitHighlight && pribadi.habitHighlight.isAlert) {
+        boxHabit.classList.remove('hidden');
+        boxHabit.className = 'mt-4 p-3 rounded-xl border border-amber-200 bg-amber-50/70 flex items-center gap-3';
+        txtHabitTitle.textContent = 'Evaluasi Kebiasaan: ' + pribadi.habitHighlight.category;
+        txtHabitDesc.textContent = 'Kategori ' + pribadi.habitHighlight.category + ' mencapai ' + formatRupiah(pribadi.habitHighlight.amount) + ' (' + pribadi.habitHighlight.percent + '% dari total pengeluaran Anda).';
+      } else {
+        boxHabit.classList.add('hidden');
+      }
+
+      // 2. Render Kantong Bersama Card & Health Status
+      document.getElementById('txtBersamaBalance').textContent = formatRupiah(bersama.balance);
+      document.getElementById('txtBersamaIncome').textContent = formatRupiah(bersama.totalIncome);
+      document.getElementById('txtBersamaExpense').textContent = formatRupiah(bersama.totalExpense);
+      document.getElementById('txtHealthStatus').textContent = bersama.healthStatus;
+      document.getElementById('txtHealthScore').textContent = bersama.healthScore + ' / 100';
+      document.getElementById('txtHealthNote').textContent = bersama.healthNote;
+      
+      const barHealth = document.getElementById('barHealthMeter');
+      barHealth.style.width = Math.min(100, Math.max(5, bersama.healthScore)) + '%';
+      
+      const badgeHealth = document.getElementById('badgeHealthContainer');
+      if (bersama.healthScore >= 80) {
+        badgeHealth.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+        barHealth.className = 'bg-emerald-500 h-2.5 rounded-full transition-all duration-500';
+      } else if (bersama.healthScore >= 50) {
+        badgeHealth.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
+        barHealth.className = 'bg-amber-500 h-2.5 rounded-full transition-all duration-500';
+      } else {
+        badgeHealth.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+        barHealth.className = 'bg-rose-500 h-2.5 rounded-full transition-all duration-500';
+      }
+
+      // 3. Render Visual Charts
+      renderCharts();
+
+      // 4. Render Tabel Transaksi
+      renderTransactionList();
+
+      // Update options di modal form transaksi
+      updateCategoryOptions();
+    }
+
+    // Render Chart.js
+    function renderCharts() {
+      if (!state.data) return;
+      const { pribadi, bersama } = state.data;
+
+      // 1. Chart Pribadi (Horizontal Bar)
+      const pribadiLabels = Object.keys(pribadi.categoryBreakdown || {});
+      const pribadiValues = Object.values(pribadi.categoryBreakdown || {});
+      const emptyPribadi = document.getElementById('emptyChartPribadi');
+
+      if (state.chartPribadiInstance) {
+        state.chartPribadiInstance.destroy();
+      }
+
+      if (pribadiValues.length === 0 || pribadiValues.every(v => v === 0)) {
+        emptyPribadi.classList.remove('hidden');
+      } else {
+        emptyPribadi.classList.add('hidden');
+        const ctxPribadi = document.getElementById('chartPribadiCanvas').getContext('2d');
+        state.chartPribadiInstance = new Chart(ctxPribadi, {
+          type: 'bar',
+          data: {
+            labels: pribadiLabels,
+            datasets: [{
+              label: 'Pengeluaran (Rp)',
+              data: pribadiValues,
+              backgroundColor: pribadiLabels.map(l => (l === 'Kopi' || l === 'Belanja Online') ? '#8b5cf6' : '#6366f1'),
+              borderRadius: 8,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ' ' + formatRupiah(ctx.raw)
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: {
+                  callback: (val) => (val >= 1000000 ? (val / 1000000) + 'jt' : (val / 1000) + 'rb')
+                }
+              },
+              y: {
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Chart Bersama (Pie / Donut Chart)
+      const bersamaLabels = Object.keys(bersama.categoryBreakdown || {});
+      const bersamaValues = Object.values(bersama.categoryBreakdown || {});
+      const emptyBersama = document.getElementById('emptyChartBersama');
+
+      if (state.chartBersamaInstance) {
+        state.chartBersamaInstance.destroy();
+      }
+
+      if (bersamaValues.length === 0 || bersamaValues.every(v => v === 0)) {
+        emptyBersama.classList.remove('hidden');
+      } else {
+        emptyBersama.classList.add('hidden');
+        const ctxBersama = document.getElementById('chartBersamaCanvas').getContext('2d');
+        state.chartBersamaInstance = new Chart(ctxBersama, {
+          type: 'doughnut',
+          data: {
+            labels: bersamaLabels,
+            datasets: [{
+              data: bersamaValues,
+              backgroundColor: ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'],
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 12, font: { size: 10, family: 'Plus Jakarta Sans' } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ' ' + ctx.label + ': ' + formatRupiah(ctx.raw)
+                }
+              }
+            },
+            cutout: '62%'
+          }
+        });
+      }
+    }
+
+    // Filter Transaksi (Semua, Pribadi, Bersama)
+    function setTransactionFilter(tab) {
+      state.activeTab = tab;
+      const tabAll = document.getElementById('tabFilterAll');
+      const tabPribadi = document.getElementById('tabFilterPribadi');
+      const tabBersama = document.getElementById('tabFilterBersama');
+
+      const activeClass = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition';
+      const inactiveClass = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition';
+
+      tabAll.className = (tab === 'ALL') ? activeClass : inactiveClass;
+      tabPribadi.className = (tab === 'PRIBADI') ? activeClass : inactiveClass;
+      tabBersama.className = (tab === 'BERSAMA') ? activeClass : inactiveClass;
+
+      renderTransactionList();
+    }
+
+    // Render Tabel Transaksi
+    function renderTransactionList() {
+      if (!state.data) return;
+      const tbody = document.getElementById('tbodyTransactions');
+      const emptyState = document.getElementById('emptyTransactionsState');
+      const searchQuery = (document.getElementById('inputSearchTrx').value || '').toLowerCase().trim();
+
+      let list = [];
+      if (state.activeTab === 'ALL') {
+        list = [...(state.data.pribadi.transactions || []), ...(state.data.bersama.transactions || [])];
+      } else if (state.activeTab === 'PRIBADI') {
+        list = [...(state.data.pribadi.transactions || [])];
+      } else if (state.activeTab === 'BERSAMA') {
+        list = [...(state.data.bersama.transactions || [])];
+      }
+
+      // Filter Pencarian
+      if (searchQuery) {
+        list = list.filter(t => 
+          (t.description || '').toLowerCase().includes(searchQuery) ||
+          (t.category || '').toLowerCase().includes(searchQuery)
+        );
+      }
+
+      // Sort Tanggal Terbaru
+      list.sort((a, b) => (b.date > a.date ? 1 : -1));
+
+      tbody.innerHTML = '';
+      if (list.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/70 transition-colors';
+
+        const isIncome = item.type === 'INCOME';
+        const isBersama = item.pocket === 'BERSAMA';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 whitespace-nowrap text-slate-600 font-semibold">${item.date}</td>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${isBersama ? 'bg-purple-50 text-accent-700 border border-purple-200' : 'bg-indigo-50 text-brand-700 border border-brand-200'}">
+              ${isBersama ? 'Bersama' : 'Pribadi ' + item.userProfile}
+            </span>
+          </td>
+          <td class="py-3 px-3 whitespace-nowrap font-medium text-slate-700">${escapeHtml(item.category)}</td>
+          <td class="py-3 px-3 text-slate-600 font-normal max-w-xs truncate">${escapeHtml(item.description)}</td>
+          <td class="py-3 px-3 whitespace-nowrap text-right font-bold ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
+            ${isIncome ? '+' : '-'} ${formatRupiah(item.amount)}
+          </td>
+          <td class="py-3 px-3 whitespace-nowrap text-center no-print">
+            <button onclick="confirmDeleteTrx('${item.id}', '${item.pocket}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Transaksi">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal Catat Transaksi
+    function openTransactionModal() {
+      document.getElementById('modalTransaction').classList.remove('hidden');
+      updateCategoryOptions();
+    }
+    function closeTransactionModal() {
+      document.getElementById('modalTransaction').classList.add('hidden');
+      document.getElementById('formTransaction').reset();
+      document.getElementById('inputAmountRaw').value = '';
+      document.getElementById('inputAmountDisplay').value = '';
+    }
+
+    function updateCategoryOptions() {
+      const pocketRadios = document.getElementsByName('inputPocket');
+      let selectedPocket = 'PRIBADI';
+      for (const r of pocketRadios) { if (r.checked) selectedPocket = r.value; }
+
+      const select = document.getElementById('selectCategory');
+      if (!select) return;
+      select.innerHTML = '';
+
+      let categories = [];
+      if (state.data && state.data.categories) {
+        categories = (selectedPocket === 'BERSAMA') ? state.data.categories.bersama : state.data.categories.pribadi;
+      } else {
+        categories = (selectedPocket === 'BERSAMA') 
+          ? ["Cicilan/Kost", "Makan Bersama", "Tabungan Liburan", "Kebutuhan Rumah", "Setoran Bersama", "Lainnya"]
+          : ["Kopi", "Belanja Online", "Transportasi", "Makan Pribadi", "Kebutuhan Diri", "Gaji/Pemasukan", "Lainnya"];
+      }
+
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+
+    function handleTransactionSubmit(e) {
+      e.preventDefault();
+      const rawAmount = document.getElementById('inputAmountRaw').value;
+      const amount = parseFloat(rawAmount);
+      if (!amount || amount <= 0) {
+        showToast('Masukkan nominal transaksi yang valid.', 'error');
+        return;
+      }
+
+      let selectedPocket = 'PRIBADI';
+      for (const r of document.getElementsByName('inputPocket')) { if (r.checked) selectedPocket = r.value; }
+
+      let selectedType = 'EXPENSE';
+      for (const r of document.getElementsByName('inputType')) { if (r.checked) selectedType = r.value; }
+
+      const payload = {
+        userProfile: state.profile,
+        pocket: selectedPocket,
+        type: selectedType,
+        category: document.getElementById('selectCategory').value,
+        amount: amount,
+        description: document.getElementById('inputDescription').value,
+        date: document.getElementById('inputTrxDate').value
+      };
+
+      showLoading(true, 'Menyimpan transaksi...');
+
+      try {
+        const res = await callApi('createTransaction', { payload });
+        showLoading(false);
+        if (res.success) {
+          closeTransactionModal();
+          showToast(res.message || 'Transaksi berhasil disimpan.', 'success');
+          loadDashboardData();
+        } else {
+          showToast(res.error || 'Gagal menyimpan transaksi.', 'error');
+        }
+      } catch (err) {
+        showLoading(false);
+        onDataError(err);
+      }
+    }
+
+    // Hapus Transaksi
+    async function confirmDeleteTrx(trxId, pocket) {
+      if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) return;
+      showLoading(true, 'Menghapus transaksi...');
+
+      try {
+        const res = await callApi('deleteTransaction', {
+          transactionId: trxId,
+          userProfile: state.profile
+        });
+        showLoading(false);
+        if (res.success) {
+          showToast(res.message || 'Transaksi telah dihapus.', 'success');
+          loadDashboardData();
+        } else {
+          showToast(res.error || 'Gagal menghapus transaksi.', 'error');
+        }
+      } catch (err) {
+        showLoading(false);
+        onDataError(err);
+      }
+    }
+
+    // Modal Limit Anggaran
+    function openLimitModal() {
+      document.getElementById('modalLimit').classList.remove('hidden');
+      if (state.data) {
+        const defaultVal = state.data.pribadi.monthlyLimit || 3000000;
+        document.getElementById('inputLimitRaw').value = defaultVal;
+        document.getElementById('inputLimitDisplay').value = formatNumber(defaultVal);
+      }
+    }
+    function closeLimitModal() {
+      document.getElementById('modalLimit').classList.add('hidden');
+    }
+
+    function handleLimitSubmit(e) {
+      e.preventDefault();
+      const rawLimit = document.getElementById('inputLimitRaw').value;
+      const newLimit = parseFloat(rawLimit);
+      if (isNaN(newLimit) || newLimit < 0) {
+        showToast('Masukkan nominal limit yang valid.', 'error');
+        return;
+      }
+
+      const targetChoice = document.getElementById('selectTargetPocketLimit').value;
+      const targetPocket = (targetChoice === 'BERSAMA') ? 'BERSAMA' : ('PRIBADI_' + state.profile.toUpperCase());
+
+      const payload = {
+        targetPocket: targetPocket,
+        monthPeriod: state.monthPeriod,
+        newLimit: newLimit
+      };
+
+      showLoading(true, 'Menyimpan limit anggaran...');
+
+      try {
+        const res = await callApi('updateMonthlyLimit', { payload });
+        showLoading(false);
+        if (res.success) {
+          closeLimitModal();
+          showToast(res.message || 'Limit berhasil disimpan.', 'success');
+          loadDashboardData();
+        } else {
+          showToast(res.error || 'Gagal menyimpan limit.', 'error');
+        }
+      } catch (err) {
+        showLoading(false);
+        onDataError(err);
+      }
+    }
+
+    // Modal Rekap & Unduh
+    function openReportModal() {
+      if (!state.data) return;
+      document.getElementById('modalReport').classList.remove('hidden');
+      document.getElementById('txtReportModalSubtitle').textContent = 'Periode: ' + state.monthPeriod;
+      document.getElementById('txtReportPribadiExpense').textContent = formatRupiah(state.data.pribadi.totalExpense);
+      document.getElementById('txtReportBersamaExpense').textContent = formatRupiah(state.data.bersama.totalExpense);
+      document.getElementById('txtReportHealthStatus').textContent = state.data.bersama.healthStatus;
+      
+      const count = (state.data.pribadi.transactions || []).length + (state.data.bersama.transactions || []).length;
+      document.getElementById('txtReportTrxCount').textContent = count + ' Transaksi';
+    }
+    function closeReportModal() {
+      document.getElementById('modalReport').classList.add('hidden');
+    }
+
+    // Ekspor CSV
+    function exportCSVReport() {
+      if (!state.data) return;
+      const pribadiTrx = state.data.pribadi.transactions || [];
+      const bersamaTrx = state.data.bersama.transactions || [];
+      const allTrx = [...pribadiTrx, ...bersamaTrx];
+
+      let csv = 'TransactionID,Date,Profile,Pocket,Type,Category,Amount,Description\r\n';
+      allTrx.forEach(t => {
+        const desc = '"' + (t.description || '').replace(/"/g, '""') + '"';
+        csv += `${t.id},${t.date},${t.userProfile},${t.pocket},${t.type},${t.category},${t.amount},${desc}\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `REGIDHsafe_Rekap_${state.monthPeriod}_${state.profile}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Berkas CSV berhasil diunduh.', 'success');
+    }
+
+    // Cetak / Simpan PDF
+    function printPDFReport() {
+      closeReportModal();
+      document.getElementById('printReportSubtitle').textContent = 'Periode: ' + state.monthPeriod + ' | Profil Aktif: ' + state.profile;
+      document.getElementById('printGeneratedDate').textContent = 'Dicetak: ' + new Date().toISOString().substring(0, 10);
+      window.print();
+    }
+
+    // Helper Rupiah Formatter
+    function formatRupiahInput(input) {
+      let val = input.value.replace(/\D/g, '');
+      document.getElementById('inputAmountRaw').value = val;
+      input.value = formatNumber(val);
+    }
+
+    function formatNumber(n) {
+      if (!n) return '';
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function formatRupiah(num) {
+      if (isNaN(num)) return 'Rp 0';
+      return 'Rp ' + Number(num).toLocaleString('id-ID');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    // Toast Feedback
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'glass-card bg-white px-4 py-3 rounded-xl shadow-lg border border-slate-100 flex items-center gap-2.5 text-xs font-semibold text-slate-800 transition-all duration-300 transform translate-y-2 pointer-events-auto';
+
+      let iconColor = 'text-brand-600';
+      if (type === 'success') iconColor = 'text-emerald-600';
+      if (type === 'error') iconColor = 'text-rose-600';
+
+      toast.innerHTML = `
+        <svg class="w-4 h-4 ${iconColor} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2'); }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function showLoading(show, text = 'Menyinkronkan data...') {
+      const el = document.getElementById('loadingOverlay');
+      const txt = document.getElementById('loadingText');
+      if (show) {
+        txt.textContent = text;
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    // Mock Data Fallback jika dijalankan di luar Google Apps Script
+    function getMockData(profile, period) {
+      const isF = (profile === 'Fadhil');
+      return {
+        profile: profile,
+        monthPeriod: period,
+        pribadi: {
+          totalIncome: 6500000,
+          totalExpense: isF ? 2150000 : 1850000,
+          balance: isF ? 4350000 : 4650000,
+          monthlyLimit: 3000000,
+          limitUsedPercent: isF ? 71 : 62,
+          isOverLimit: false,
+          categoryBreakdown: isF 
+            ? { "Kopi": 650000, "Transportasi": 450000, "Makan Pribadi": 850000, "Kebutuhan Diri": 200000 }
+            : { "Belanja Online": 750000, "Makan Pribadi": 600000, "Transportasi": 300000, "Kebutuhan Diri": 200000 },
+          habitHighlight: {
+            category: isF ? 'Kopi' : 'Belanja Online',
+            amount: isF ? 650000 : 750000,
+            percent: isF ? 30 : 40,
+            isAlert: true
+          },
+          transactions: isF ? [
+            { id: "TRX-DEMO-01", date: period + "-14", userProfile: "Fadhil", pocket: "PRIBADI", type: "EXPENSE", category: "Kopi", amount: 85000, description: "Kopi Americano & Toast" },
+            { id: "TRX-DEMO-02", date: period + "-12", userProfile: "Fadhil", pocket: "PRIBADI", type: "EXPENSE", category: "Transportasi", amount: 150000, description: "Bensin motor & tol" },
+            { id: "TRX-DEMO-03", date: period + "-01", userProfile: "Fadhil", pocket: "PRIBADI", type: "INCOME", category: "Gaji/Pemasukan", amount: 6500000, description: "Gaji Bulanan Fadhil" }
+          ] : [
+            { id: "TRX-DEMO-04", date: period + "-15", userProfile: "Regyna", pocket: "PRIBADI", type: "EXPENSE", category: "Belanja Online", amount: 450000, description: "Skincare serum & toner" },
+            { id: "TRX-DEMO-05", date: period + "-10", userProfile: "Regyna", pocket: "PRIBADI", type: "EXPENSE", category: "Makan Pribadi", amount: 120000, description: "Makan siang kantor" },
+            { id: "TRX-DEMO-06", date: period + "-01", userProfile: "Regyna", pocket: "PRIBADI", type: "INCOME", category: "Gaji/Pemasukan", amount: 6500000, description: "Gaji Bulanan Regyna" }
+          ]
+        },
+        bersama: {
+          totalIncome: 6000000,
+          totalExpense: 3950000,
+          balance: 2050000,
+          monthlyLimit: 6000000,
+          limitUsedPercent: 66,
+          isOverLimit: false,
+          healthScore: 92,
+          healthStatus: "Sangat Prima",
+          healthNote: "Rasio cadangan kas bersama mencapai 34% surplus.",
+          categoryBreakdown: {
+            "Cicilan/Kost": 2400000,
+            "Makan Bersama": 750000,
+            "Tabungan Liburan": 800000
+          },
+          transactions: [
+            { id: "TRX-DEMO-07", date: period + "-05", userProfile: "Fadhil", pocket: "BERSAMA", type: "EXPENSE", category: "Cicilan/Kost", amount: 2400000, description: "Sewa Kost / Hunian Bersama" },
+            { id: "TRX-DEMO-08", date: period + "-11", userProfile: "Regyna", pocket: "BERSAMA", type: "EXPENSE", category: "Makan Bersama", amount: 750000, description: "Dinner & Belanja Bahan" },
+            { id: "TRX-DEMO-09", date: period + "-02", userProfile: "Fadhil", pocket: "BERSAMA", type: "EXPENSE", category: "Tabungan Liburan", amount: 800000, description: "Alokasi Liburan Bersama" }
+          ]
+        },
+        categories: {
+          pribadi: ["Kopi", "Belanja Online", "Transportasi", "Makan Pribadi", "Kebutuhan Diri", "Gaji/Pemasukan", "Lainnya"],
+          bersama: ["Cicilan/Kost", "Makan Bersama", "Tabungan Liburan", "Kebutuhan Rumah", "Setoran Bersama", "Lainnya"]
+        }
+      };
+    }
+  </script>
+</body>
+</html>
